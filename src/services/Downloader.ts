@@ -22,7 +22,16 @@ export class Downloader {
 
   private getArgs(uuid: string, url: string) {
     const fileName = this.getFileName(uuid);
-    return ["-x", "--audio-format", "mp3", "--output", `/tmp/${fileName}`, url];
+    return [
+      "-x",
+      "--audio-format",
+      "mp3",
+      "--audio-quality",
+      "10",
+      "--output",
+      `/tmp/${fileName}`,
+      url,
+    ];
   }
 
   private async download(url: string): Promise<string | null> {

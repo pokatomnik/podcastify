@@ -8,6 +8,8 @@ import { load } from "dotenv";
 
 await load({ export: true });
 
+const LIMIT = 50 * 1024 * 1024;
+
 const bot: Bot = resolve(PodcastifyBot);
 const downloader = resolve(Downloader);
 const linksExtractor = resolve(LinksExtractor);
@@ -80,12 +82,24 @@ bot.on("message", async (ctx): Promise<void> => {
         );
         return;
       }
-      await ctx.replyWithAudio(new InputFile(downloadResult.filePath), {
-        caption: url.toString(),
-        reply_parameters: {
-          message_id: ctx.message.message_id,
-        },
-      });
+      const downloadedFileStats = await Deno.stat(downloadResult.filePath);
+      if (downloadedFileStats.size <= LIMIT) {
+        await ctx.replyWithAudio(new InputFile(downloadResult.filePath), {
+          caption: url.toString(),
+          reply_parameters: {
+            message_id: ctx.message.message_id,
+          },
+        });
+      } else {
+        await ctx.reply(
+          `Файл по ссылке ${url.toString()} слишком большой для скачивания.`,
+          {
+            reply_parameters: {
+              message_id: ctx.message.message_id,
+            },
+          }
+        );
+      }
       await ctx.api.deleteMessage(ctx.chat.id, waitMessage.message_id);
     } finally {
       await downloadResult.deleteFile();
