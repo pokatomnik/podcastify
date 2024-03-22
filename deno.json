@@ -9,9 +9,10 @@
   },
   "imports": {
     "testing": "https://deno.land/std@0.154.0/testing/asserts.ts",
+    "blob": "https://deno.land/std@0.154.0/blob/mod.ts",
     "grammy": "https://deno.land/x/grammy@v1.21.1/mod.ts",
     "microdi": "https://deno.land/x/microdi@v1.0.0/mod.ts",
-    "decorate": "https://deno.land/x/decorate@1.0.0/mod.ts",
+    "decorate": "https://deno.land/x/decorate@1.1.0/mod.ts",
     "dotenv": "https://deno.land/std@0.212.0/dotenv/mod.ts",
     "linkifyjs": "npm:linkifyjs@4.1.3",
     "services/": "./src/services/",
