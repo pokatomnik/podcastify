@@ -15,7 +15,7 @@ import { UploaderPool } from "services/UploaderPool.ts";
   UploaderPool
 )
 export class PodcastifyBot {
-  private static readonly UPLOAD_LIMIT = 50; //50 * 1024 * 1024;
+  private static readonly UPLOAD_LIMIT = 50 * 1024 * 1024;
 
   private readonly bot: Bot;
 

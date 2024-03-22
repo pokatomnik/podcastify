@@ -2,19 +2,25 @@ import { Provide } from "microdi";
 import { BoundMethod, Retry } from "decorate";
 
 @Provide()
-export class Uploader0x0 implements Uploader {
-  public readonly maxUploadSizeInBytes = 512 * 1024 * 1024;
+export class UploaderLibriciel implements Uploader {
+  public readonly maxUploadSizeInBytes = 1024 * 1024 * 1024;
 
-  private readonly url = "https://0x0.st";
+  private readonly url = "https://curl.libriciel.fr";
 
   @Retry(3)
-  private async postFile(formData: FormData) {
-    const response = await fetch(this.url, {
-      method: "POST",
+  private async postFile(formData: FormData, fileName: string) {
+    const response = await fetch(`${this.url}/${fileName}`, {
+      method: "PUT",
       body: formData,
     });
     if (response.ok) {
-      return await response.text();
+      const downloadUrl = await response.text();
+      return downloadUrl
+        ? downloadUrl.replace(
+            "https://curl.libriciel.fr",
+            "https://curl.libriciel.fr/get"
+          )
+        : null;
     } else {
       throw new Error("Failed to upload");
     }
@@ -22,6 +28,7 @@ export class Uploader0x0 implements Uploader {
 
   @BoundMethod
   public async upload(filePath: string): Promise<string | null> {
+    const fileName = filePath.split("/").pop() ?? `${crypto.randomUUID()}.mp3`;
     let fileBytes: Uint8Array | null = null;
     try {
       fileBytes = await Deno.readFile(filePath);
@@ -33,7 +40,7 @@ export class Uploader0x0 implements Uploader {
     const formData = new FormData();
     formData.append("file", file);
     try {
-      return this.postFile(formData);
+      return this.postFile(formData, fileName);
     } catch {
       return null;
     }
