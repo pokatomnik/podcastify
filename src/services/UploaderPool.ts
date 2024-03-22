@@ -6,6 +6,7 @@ import { UploaderBashupload } from "services/UploaderBashUpload.ts";
 import { UploaderTarrHU } from "services/UploaderTarrHU.ts";
 import { UploaderChTools } from "services/UploaderChTools.ts";
 import { UploaderReol } from "services/UploaderReol.ts";
+import { UploaderSHub } from "services/UploaderSHub.ts";
 import { BoundMethod, MemoizedGetter } from "decorate";
 
 @Provide(
@@ -15,7 +16,8 @@ import { BoundMethod, MemoizedGetter } from "decorate";
   UploaderBashupload,
   UploaderTarrHU,
   UploaderChTools,
-  UploaderReol
+  UploaderReol,
+  UploaderSHub
 )
 export class UploaderPool implements Uploader {
   private readonly uploaders: ReadonlyArray<Uploader>;
@@ -27,7 +29,8 @@ export class UploaderPool implements Uploader {
     uploaderBashupload: Uploader,
     uploaderTarrHU: Uploader,
     uploaderChTools: Uploader,
-    uploaderReol: Uploader
+    uploaderReol: Uploader,
+    uploaderSHub: Uploader
   ) {
     this.uploaders = [
       uploaderBashupload,
@@ -37,6 +40,7 @@ export class UploaderPool implements Uploader {
       uploaderTarrHU,
       uploaderChTools,
       uploaderReol,
+      uploaderSHub,
     ];
   }
 
