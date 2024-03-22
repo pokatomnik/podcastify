@@ -93,20 +93,27 @@ export class PodcastifyBot {
           this.botTalks.downloadStarted(url.toString()),
           this.getReplyParameters(ctx.message.message_id)
         );
+
         const downloadResult =
           await this.downloader.submitDownloadTaskAndGetResult(url.toString());
 
         try {
           if (downloadResult.filePath === null) {
-            return await this.tryOrIngnoreError(() => {
+            await this.tryOrIngnoreError(() => {
               return ctx.reply(
                 this.botTalks.downloadFailed(url.toString()),
                 this.getReplyParameters(ctx.message.message_id)
               );
             });
+            continue;
           }
           const downloadedFileStats = await Deno.stat(downloadResult.filePath);
           if (downloadedFileStats.size <= PodcastifyBot.UPLOAD_LIMIT) {
+            await ctx.api.editMessageText(
+              ctx.message.chat.id,
+              waitMessage.message_id,
+              this.botTalks.uploadingNormalFile(url.toString())
+            );
             await this.tryOrIngnoreError(() => {
               const params = {
                 ...this.getCaptionParams(url.toString()),
@@ -118,6 +125,11 @@ export class PodcastifyBot {
               );
             });
           } else {
+            await ctx.api.editMessageText(
+              ctx.message.chat.id,
+              waitMessage.message_id,
+              this.botTalks.uploadingBigFile(url.toString())
+            );
             const uploadURL = await this.uploaderPool.upload(
               downloadResult.filePath
             );

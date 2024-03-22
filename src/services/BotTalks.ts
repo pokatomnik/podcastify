@@ -37,4 +37,14 @@ export class BotTalks {
   public replyWithUploadedFileLink(url: string) {
     return `Файл слишком большой, поэтому мы загрузили его на файлообменник. Скачивать тут: ${url} 🧐`;
   }
+
+  @BoundMethod
+  public uploadingBigFile(url: string): string {
+    return `Файл по ссылке ${url} слишком большой, загружаем на файлообменник`;
+  }
+
+  @BoundMethod
+  public uploadingNormalFile(url: string): string {
+    return `Файл по ссылке ${url} скачан и конвертирован в аудио, выгружаем`;
+  }
 }
