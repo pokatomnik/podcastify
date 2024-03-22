@@ -3,9 +3,16 @@ import { Uploader0x0 } from "services/Uploader0x0.ts";
 import { UploaderFileDoge } from "services/UploaderFileDoge.ts";
 import { UploaderLibriciel } from "services/UploaderLibriciel.ts";
 import { UploaderBashupload } from "services/UploaderBashUpload.ts";
+import { UploaderTarrHU } from "services/UploaderTarrHU.ts";
 import { BoundMethod, MemoizedGetter } from "decorate";
 
-@Provide(Uploader0x0, UploaderFileDoge, UploaderLibriciel, UploaderBashupload)
+@Provide(
+  Uploader0x0,
+  UploaderFileDoge,
+  UploaderLibriciel,
+  UploaderBashupload,
+  UploaderTarrHU
+)
 export class UploaderPool implements Uploader {
   private readonly uploaders: ReadonlyArray<Uploader>;
 
@@ -13,13 +20,15 @@ export class UploaderPool implements Uploader {
     uploader0x0: Uploader,
     uploaderFileDoge: Uploader,
     uploaderLibriciel: Uploader,
-    uploaderBashupload: Uploader
+    uploaderBashupload: Uploader,
+    uploaderTarrHU: Uploader
   ) {
     this.uploaders = [
       uploaderBashupload,
       uploaderFileDoge,
       uploader0x0,
       uploaderLibriciel,
+      uploaderTarrHU,
     ];
   }
 
