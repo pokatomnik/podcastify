@@ -2,18 +2,25 @@ import { Provide } from "microdi";
 import { Uploader0x0 } from "services/Uploader0x0.ts";
 import { UploaderFileDoge } from "services/UploaderFileDoge.ts";
 import { UploaderLibriciel } from "services/UploaderLibriciel.ts";
+import { UploaderBashupload } from "services/UploaderBashUpload.ts";
 import { BoundMethod, MemoizedGetter } from "decorate";
 
-@Provide(Uploader0x0, UploaderFileDoge, UploaderLibriciel)
+@Provide(Uploader0x0, UploaderFileDoge, UploaderLibriciel, UploaderBashupload)
 export class UploaderPool implements Uploader {
   private readonly uploaders: ReadonlyArray<Uploader>;
 
   public constructor(
     uploader0x0: Uploader,
     uploaderFileDoge: Uploader,
-    uploaderLibriciel: Uploader
+    uploaderLibriciel: Uploader,
+    uploaderBashupload: Uploader
   ) {
-    this.uploaders = [uploaderFileDoge, uploader0x0, uploaderLibriciel];
+    this.uploaders = [
+      uploaderBashupload,
+      uploaderFileDoge,
+      uploader0x0,
+      uploaderLibriciel,
+    ];
   }
 
   @BoundMethod
