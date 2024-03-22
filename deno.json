@@ -37,6 +37,6 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    "types": ["./src/typings/URLResponse.d.ts"]
+    "types": ["./src/typings/URLResponse.d.ts", "./src/typings/Uploader.d.ts"]
   }
 }
