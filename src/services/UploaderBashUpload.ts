@@ -17,7 +17,6 @@ export class UploaderBashupload implements Uploader {
     });
     if (response.ok) {
       const responseText = await response.text();
-      console.log(responseText);
       if (!responseText) {
         throw new Error("Incorrect response");
       }
