@@ -1,21 +1,48 @@
 import { Provide } from "microdi";
 import { Uploader0x0 } from "services/Uploader0x0.ts";
+import { UploaderFileDoge } from "services/UploaderFileDoge.ts";
+import { BoundMethod, MemoizedGetter } from "decorate";
 
-@Provide(Uploader0x0)
+@Provide(Uploader0x0, UploaderFileDoge)
 export class UploaderPool implements Uploader {
   private readonly uploaders: ReadonlyArray<Uploader>;
 
-  public constructor(uploader0x0: Uploader) {
-    this.uploaders = [uploader0x0];
+  public constructor(uploader0x0: Uploader, uploaderFileDoge: Uploader) {
+    this.uploaders = [uploaderFileDoge, uploader0x0];
   }
 
-  public async upload(filePath: string): Promise<string | null> {
-    for (const uploader of this.uploaders) {
-      const fileURL = await uploader.upload(filePath);
+  @BoundMethod
+  public async upload(
+    filePath: string,
+    fileSizeInBytes: number
+  ): Promise<string | null> {
+    const availableUploaders = this.uploaders.filter((currentUploader) => {
+      return currentUploader.maxUploadSizeInBytes >= fileSizeInBytes;
+    });
+    const availableUploaderShuffled = availableUploaders.toSorted(() => {
+      return Math.random() - 0.5;
+    });
+    if (availableUploaderShuffled.length === 0) {
+      return null;
+    }
+    for (const uploader of availableUploaderShuffled) {
+      const fileURL = await uploader.upload(filePath, fileSizeInBytes);
       if (fileURL !== null) {
         return fileURL;
       }
     }
     return null;
+  }
+
+  @MemoizedGetter()
+  public get maxUploadSizeInBytes() {
+    let maxUploadSizeInBytes = 0;
+    for (const uploader of this.uploaders) {
+      maxUploadSizeInBytes = Math.max(
+        maxUploadSizeInBytes,
+        uploader.maxUploadSizeInBytes
+      );
+    }
+    return maxUploadSizeInBytes;
   }
 }

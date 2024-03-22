@@ -3,6 +3,8 @@ import { BoundMethod, Retry } from "decorate";
 
 @Provide()
 export class Uploader0x0 implements Uploader {
+  public readonly maxUploadSizeInBytes = 512 * 1024 * 1024;
+
   private readonly url = "https://0x0.st";
 
   @Retry(3)
