@@ -15,18 +15,27 @@ import { UploaderPool } from "services/UploaderPool.ts";
   UploaderPool
 )
 export class PodcastifyBot {
-  private static readonly UPLOAD_LIMIT = 50 * 1024 * 1024;
+  private static readonly UPLOAD_LIMIT_HOSTED_50_MB = 50 * 1024 * 1024;
+
+  private static readonly UPLOAD_LIMIT_TELEGRAM_BOT_API_2_GB =
+    2 * 1024 * 1024 * 1024;
 
   private readonly bot: Bot;
 
   public constructor(
-    configuration: PodcastifyBotConfiguration,
+    private readonly configuration: PodcastifyBotConfiguration,
     private readonly linksExtractor: LinksExtractor,
     private readonly downloader: Downloader,
     private readonly botTalks: BotTalks,
     private readonly uploaderPool: UploaderPool
   ) {
-    this.bot = new Bot(configuration.botToken);
+    if (configuration.apiRoot) {
+      this.bot = new Bot(configuration.botToken, {
+        client: { apiRoot: configuration.apiRoot },
+      });
+    } else {
+      this.bot = new Bot(configuration.botToken);
+    }
   }
 
   private getCaptionParams(caption: string) {
@@ -108,7 +117,12 @@ export class PodcastifyBot {
             continue;
           }
           const downloadedFileStats = await Deno.stat(downloadResult.filePath);
-          if (downloadedFileStats.size <= PodcastifyBot.UPLOAD_LIMIT) {
+          const isTelegramBotApiEnabled = Boolean(this.configuration.apiRoot);
+          const maxTelegramUploadSize = isTelegramBotApiEnabled
+            ? PodcastifyBot.UPLOAD_LIMIT_TELEGRAM_BOT_API_2_GB
+            : PodcastifyBot.UPLOAD_LIMIT_HOSTED_50_MB;
+
+          if (downloadedFileStats.size <= maxTelegramUploadSize) {
             await ctx.api.editMessageText(
               ctx.message.chat.id,
               waitMessage.message_id,
