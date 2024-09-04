@@ -26,7 +26,13 @@ export class PodcastifyBot {
     private readonly botTalks: BotTalks,
     private readonly uploaderPool: UploaderPool
   ) {
-    this.bot = new Bot(configuration.botToken);
+    if (configuration.apiRoot) {
+      this.bot = new Bot(configuration.botToken, {
+        client: { apiRoot: configuration.apiRoot },
+      });
+    } else {
+      this.bot = new Bot(configuration.botToken);
+    }
   }
 
   private getCaptionParams(caption: string) {
