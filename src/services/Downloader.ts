@@ -1,6 +1,7 @@
 import { BoundMethod } from "decorate";
 import { Provide } from "microdi";
 import { WorkerPool } from "services/WorkerPool.ts";
+import { DownloaderConfiguration } from "services/DownloaderConfiguration.ts";
 
 interface DownloadResultError {
   readonly filePath: null;
@@ -12,15 +13,18 @@ interface DownloadResultOK {
   deleteFile(): Promise<void>;
 }
 
-@Provide(WorkerPool)
+@Provide(WorkerPool, DownloaderConfiguration)
 export class Downloader {
-  public constructor(private readonly workerPool: WorkerPool) {}
+  public constructor(
+    private readonly workerPool: WorkerPool,
+    private readonly downloaderConfiguration: DownloaderConfiguration
+  ) {}
 
   private getFileName(uuid: string): string {
     return `${uuid}.mp3`;
   }
 
-  private getArgs(uuid: string, url: string) {
+  private getArgs(uuid: string, url: string, proxyUrl?: string) {
     const fileName = this.getFileName(uuid);
     return [
       "-x",
@@ -28,16 +32,33 @@ export class Downloader {
       "mp3",
       "--audio-quality",
       "96K",
+      ...(proxyUrl ? ["--proxy", proxyUrl] : []),
       "--output",
       `/tmp/${fileName}`,
       url,
     ];
   }
 
-  private async download(url: string): Promise<string | null> {
+  private async downloadWithNoProxy(url: string): Promise<string | null> {
     const uuid = crypto.randomUUID();
     const command = new Deno.Command("yt-dlp", {
       args: this.getArgs(uuid, url),
+    });
+    try {
+      const { success } = await command.output();
+      return success ? uuid : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async downloadWithProxy(
+    url: string,
+    proxyUrl: string
+  ): Promise<string | null> {
+    const uuid = crypto.randomUUID();
+    const command = new Deno.Command("yt-dlp", {
+      args: this.getArgs(uuid, url, proxyUrl),
     });
     try {
       const { success } = await command.output();
@@ -59,9 +80,19 @@ export class Downloader {
   public async submitDownloadTaskAndGetResult(
     url: string
   ): Promise<DownloadResultError | DownloadResultOK> {
-    const uuid = await this.workerPool.submitTaskAndGetResult(() => {
-      return this.download(url);
+    let uuid: string | null = null;
+
+    uuid = await this.workerPool.submitTaskAndGetResult(() => {
+      return this.downloadWithNoProxy(url);
     });
+
+    const proxyUrl = this.downloaderConfiguration.proxyUrl;
+    if (!uuid && proxyUrl) {
+      uuid = await this.workerPool.submitTaskAndGetResult(() => {
+        return this.downloadWithProxy(url, proxyUrl);
+      });
+    }
+
     if (uuid) {
       const filePath = `/tmp/${this.getFileName(uuid)}`;
       return {
