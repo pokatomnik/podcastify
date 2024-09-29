@@ -6,11 +6,13 @@ import { LinksExtractor } from "services/LinksExtractor.ts";
 import { Downloader } from "services/Downloader.ts";
 import { BotTalks } from "services/BotTalks.ts";
 import { UploaderPool } from "services/UploaderPool.ts";
+import { YoutubeVideoNameResolver } from "services/YoutubeVideoNameResolver.ts";
 
 @Provide(
   PodcastifyBotConfiguration,
   LinksExtractor,
   Downloader,
+  YoutubeVideoNameResolver,
   BotTalks,
   UploaderPool
 )
@@ -26,6 +28,7 @@ export class PodcastifyBot {
     private readonly configuration: PodcastifyBotConfiguration,
     private readonly linksExtractor: LinksExtractor,
     private readonly downloader: Downloader,
+    private readonly youtubeVideoNameResolver: YoutubeVideoNameResolver,
     private readonly botTalks: BotTalks,
     private readonly uploaderPool: UploaderPool
   ) {
@@ -103,8 +106,10 @@ export class PodcastifyBot {
           this.getReplyParameters(ctx.message.message_id)
         );
 
-        const downloadResult =
-          await this.downloader.submitDownloadTaskAndGetResult(url.toString());
+        const [downloadResult, fileName] = await Promise.all([
+          this.downloader.submitDownloadTaskAndGetResult(url.toString()),
+          this.youtubeVideoNameResolver.resolve(url.toString()),
+        ]);
 
         try {
           if (downloadResult.filePath === null) {
@@ -134,7 +139,7 @@ export class PodcastifyBot {
                 ...this.getReplyParameters(ctx.message.message_id),
               };
               return ctx.replyWithAudio(
-                new InputFile(downloadResult.filePath),
+                new InputFile(downloadResult.filePath, fileName ?? undefined),
                 params
               );
             });

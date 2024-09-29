@@ -1,3 +1,4 @@
+import * as path from "path";
 import { BoundMethod } from "decorate";
 import { Provide } from "microdi";
 import { WorkerPool } from "services/WorkerPool.ts";
@@ -24,6 +25,19 @@ export class Downloader {
     return `${uuid}.mp3`;
   }
 
+  private getOSTempDir() {
+    return (
+      Deno.env.get("TMPDIR") ||
+      Deno.env.get("TMP") ||
+      Deno.env.get("TEMP") ||
+      "/tmp"
+    );
+  }
+
+  private getTempFilePath(tempFilename: string) {
+    return path.join(this.getOSTempDir(), tempFilename);
+  }
+
   private getArgs(uuid: string, url: string, proxyUrl?: string) {
     const fileName = this.getFileName(uuid);
     return [
@@ -34,7 +48,7 @@ export class Downloader {
       "96K",
       ...(proxyUrl ? ["--proxy", proxyUrl] : []),
       "--output",
-      `/tmp/${fileName}`,
+      this.getTempFilePath(fileName),
       url,
     ];
   }
@@ -94,7 +108,7 @@ export class Downloader {
     }
 
     if (uuid) {
-      const filePath = `/tmp/${this.getFileName(uuid)}`;
+      const filePath = this.getTempFilePath(this.getFileName(uuid));
       return {
         filePath,
         deleteFile: () => this.deleteFile(filePath),

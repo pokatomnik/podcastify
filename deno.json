@@ -14,6 +14,7 @@
     "microdi": "https://deno.land/x/microdi@v1.0.0/mod.ts",
     "decorate": "https://deno.land/x/decorate@1.1.0/mod.ts",
     "dotenv": "https://deno.land/std@0.212.0/dotenv/mod.ts",
+    "path": "jsr:@std/path",
     "linkifyjs": "npm:linkifyjs@4.1.3",
     "services/": "./src/services/",
     "shared/": "./src/shared/"
