@@ -13,6 +13,14 @@ export class LinkValidator {
           (url) => url.searchParams.get("v") !== "",
         ],
       ],
+      [
+        "m.youtube.com",
+        [
+          (url) => url.pathname === "/watch",
+          (url) => url.searchParams.has("v"),
+          (url) => url.searchParams.get("v") !== "",
+        ],
+      ],
       ["youtu.be", [(url) => url.pathname !== "/"]],
     ]);
 
