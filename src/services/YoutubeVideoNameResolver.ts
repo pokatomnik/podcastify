@@ -21,7 +21,7 @@ export class YoutubeVideoNameResolver {
     )
   );
   private static readonly numbers = new Set(Array.from("0123456789"));
-  private static readonly specialChars = new Set([" ,.!?"]);
+  private static readonly specialChars = new Set(Array.from(" ,.!?"));
   private static allowedChars = new Set([
     ...YoutubeVideoNameResolver.enAlpha,
     ...YoutubeVideoNameResolver.ruAlpha,
