@@ -6,13 +6,13 @@ import { LinksExtractor } from "services/LinksExtractor.ts";
 import { Downloader } from "services/Downloader.ts";
 import { BotTalks } from "services/BotTalks.ts";
 import { UploaderPool } from "services/UploaderPool.ts";
-import { YoutubeVideoNameResolver } from "services/YoutubeVideoNameResolver.ts";
+import { VideoNameResolver } from "services/VideoNameResolver.ts";
 
 @Provide(
   PodcastifyBotConfiguration,
   LinksExtractor,
   Downloader,
-  YoutubeVideoNameResolver,
+  VideoNameResolver,
   BotTalks,
   UploaderPool
 )
@@ -28,7 +28,7 @@ export class PodcastifyBot {
     private readonly configuration: PodcastifyBotConfiguration,
     private readonly linksExtractor: LinksExtractor,
     private readonly downloader: Downloader,
-    private readonly youtubeVideoNameResolver: YoutubeVideoNameResolver,
+    private readonly videoNameResolver: VideoNameResolver,
     private readonly botTalks: BotTalks,
     private readonly uploaderPool: UploaderPool
   ) {
@@ -108,7 +108,7 @@ export class PodcastifyBot {
 
         const [downloadResult, fileName] = await Promise.all([
           this.downloader.submitDownloadTaskAndGetResult(url.toString()),
-          this.youtubeVideoNameResolver.resolve(url.toString()),
+          this.videoNameResolver.resolve(url.toString()),
         ]);
 
         try {

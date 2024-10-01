@@ -3,30 +3,30 @@ import { Provide } from "microdi";
 import { DownloaderConfiguration } from "services/DownloaderConfiguration.ts";
 
 @Provide(DownloaderConfiguration)
-export class YoutubeVideoNameResolver {
+export class VideoNameResolver {
   private static readonly enAlphaLower = "abcdefghijklmnopqrstuvwxyz";
   private static readonly enAlpha = new Set(
     Array.from(
-      YoutubeVideoNameResolver.enAlphaLower.concat(
-        YoutubeVideoNameResolver.enAlphaLower.toLocaleUpperCase()
+      VideoNameResolver.enAlphaLower.concat(
+        VideoNameResolver.enAlphaLower.toLocaleUpperCase()
       )
     )
   );
   private static readonly ruAlphaLower = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
   private static readonly ruAlpha = new Set(
     Array.from(
-      YoutubeVideoNameResolver.ruAlphaLower.concat(
-        YoutubeVideoNameResolver.ruAlphaLower.toLocaleUpperCase()
+      VideoNameResolver.ruAlphaLower.concat(
+        VideoNameResolver.ruAlphaLower.toLocaleUpperCase()
       )
     )
   );
   private static readonly numbers = new Set(Array.from("0123456789"));
   private static readonly specialChars = new Set(Array.from(" ,.!?"));
   private static allowedChars = new Set([
-    ...YoutubeVideoNameResolver.enAlpha,
-    ...YoutubeVideoNameResolver.ruAlpha,
-    ...YoutubeVideoNameResolver.numbers,
-    ...YoutubeVideoNameResolver.specialChars,
+    ...VideoNameResolver.enAlpha,
+    ...VideoNameResolver.ruAlpha,
+    ...VideoNameResolver.numbers,
+    ...VideoNameResolver.specialChars,
   ]);
 
   public constructor(
@@ -66,7 +66,7 @@ export class YoutubeVideoNameResolver {
 
   private cleanFileName(rawFileName: string): string {
     return Array.from(rawFileName)
-      .filter((char) => YoutubeVideoNameResolver.allowedChars.has(char))
+      .filter((char) => VideoNameResolver.allowedChars.has(char))
       .join("");
   }
 
