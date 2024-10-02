@@ -2,7 +2,7 @@
 
 [![Test](https://github.com/pokatomnik/podcastify/actions/workflows/deno.yml/badge.svg)](https://github.com/pokatomnik/podcastify/actions/workflows/deno.yml)
 
-Конвертирует Youtube видео в подкаст
+Конвертирует Vkontakte или Youtube видео в подкаст
 
 Для настройки в корне проекта необходимо создать `.env` файл вида
 

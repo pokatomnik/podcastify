@@ -5,6 +5,7 @@ import { Provide } from "microdi";
 export class LinkValidator {
   private readonly rules: Map<string, ReadonlyArray<(url: URL) => boolean>> =
     new Map([
+      // Youtube
       [
         "youtube.com",
         [
@@ -22,6 +23,9 @@ export class LinkValidator {
         ],
       ],
       ["youtu.be", [(url) => url.pathname !== "/"]],
+      // Vkontakte
+      ["vk.com", [(url) => url.pathname.startsWith("/video-")]],
+      ["m.vk.com", [(url) => url.pathname.startsWith("/video-")]],
     ]);
 
   public constructor() {
@@ -39,7 +43,7 @@ export class LinkValidator {
     if (rules === null) {
       return {
         type: "UNKNOWN",
-        message: `Домен ${url.hostname} не похож ни на один из доменов Youtube.`,
+        message: `Домен ${url.hostname} не похож ни на один из доменов Youtube или Vkontakte.`,
         url,
       };
     }
@@ -55,7 +59,7 @@ export class LinkValidator {
     }
     return {
       type: "UNKNOWN",
-      message: `Ссыллка ${url.toString()} пока что не поддерживается. Попробуйте скопировать прямую ссылку на Youtube видео`,
+      message: `Ссыллка ${url.toString()} пока что не поддерживается. Попробуйте скопировать прямую ссылку на Youtube или Vkontakte видео`,
       url,
     };
   }
