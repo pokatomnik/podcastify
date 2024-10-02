@@ -5,7 +5,12 @@ import { Provide } from "microdi";
 export class LinkValidator {
   private readonly rules: Map<string, ReadonlyArray<(url: URL) => boolean>> =
     new Map([
-      // Youtube
+      /*
+       * Надо обрабатывать следующие виды ссылок:
+       * - [youtube.com/watch?v=VIDEO_ID]
+       * - [m.youtube.com/watch?v=VIDEO_ID]
+       * - [youtu.be/VIDEO_ID]
+       */
       [
         "youtube.com",
         [
@@ -23,9 +28,14 @@ export class LinkValidator {
         ],
       ],
       ["youtu.be", [(url) => url.pathname !== "/"]],
-      // Vkontakte
-      ["vk.com", [(url) => url.pathname.startsWith("/video-")]],
-      ["m.vk.com", [(url) => url.pathname.startsWith("/video-")]],
+      /*
+       * Надо обрабатывать следующие виды ссылок:
+       * [vk.com/video-VIDEO_ID]
+       * [m.vk.com/video-VIDEO_ID]
+       * [m.vk.com/video/CATEGORY?z=video-VIDEO_ID%2ADDITIONAL_INFO]
+       */
+      ["vk.com", [(url) => url.pathname.startsWith("/video")]],
+      ["m.vk.com", [(url) => url.pathname.startsWith("/video")]],
     ]);
 
   public constructor() {
