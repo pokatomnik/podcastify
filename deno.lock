@@ -1,27 +1,49 @@
 {
-  "version": "3",
-  "packages": {
-    "specifiers": {
-      "jsr:@std/assert@^0.224.0": "jsr:@std/assert@0.224.0",
-      "jsr:@std/path": "jsr:@std/path@0.224.0",
-      "npm:linkifyjs@4.1.3": "npm:linkifyjs@4.1.3"
+  "version": "4",
+  "specifiers": {
+    "jsr:@dbushell/audio-duration@0.6": "0.6.0",
+    "jsr:@std/assert@0.216": "0.216.0",
+    "jsr:@std/bytes@1.0": "1.0.2",
+    "jsr:@std/bytes@^1.0.2": "1.0.2",
+    "jsr:@std/io@0.224": "0.224.9",
+    "jsr:@std/path@*": "1.0.6",
+    "jsr:@std/path@0.216": "0.216.0",
+    "npm:linkifyjs@4.1.3": "4.1.3"
+  },
+  "jsr": {
+    "@dbushell/audio-duration@0.6.0": {
+      "integrity": "477ab528eec95f344c5fe84020b7556a97885fcb4b150e3c06ecdf97c00ccc9c",
+      "dependencies": [
+        "jsr:@std/bytes@1.0",
+        "jsr:@std/io",
+        "jsr:@std/path@0.216"
+      ]
     },
-    "jsr": {
-      "@std/assert@0.224.0": {
-        "integrity": "8643233ec7aec38a940a8264a6e3eed9bfa44e7a71cc6b3c8874213ff401967f"
-      },
-      "@std/path@0.224.0": {
-        "integrity": "55bca6361e5a6d158b9380e82d4981d82d338ec587de02951e2b7c3a24910ee6",
-        "dependencies": [
-          "jsr:@std/assert@^0.224.0"
-        ]
-      }
+    "@std/assert@0.216.0": {
+      "integrity": "f65392edf3bec39e2d1028e51f1da549db81691034b244eaba83318a757c0c2e"
     },
-    "npm": {
-      "linkifyjs@4.1.3": {
-        "integrity": "sha512-auMesunaJ8yfkHvK4gfg1K0SaKX/6Wn9g2Aac/NwX+l5VdmFZzo/hdPGxEOETj+ryRa4/fiOPjeeKURSAJx1sg==",
-        "dependencies": {}
-      }
+    "@std/bytes@1.0.2": {
+      "integrity": "fbdee322bbd8c599a6af186a1603b3355e59a5fb1baa139f8f4c3c9a1b3e3d57"
+    },
+    "@std/io@0.224.9": {
+      "integrity": "4414664b6926f665102e73c969cfda06d2c4c59bd5d0c603fd4f1b1c840d6ee3",
+      "dependencies": [
+        "jsr:@std/bytes@^1.0.2"
+      ]
+    },
+    "@std/path@0.216.0": {
+      "integrity": "85c121f1b43f7fb17e225567c4f151b3a67796ed8c619d37f9d61ea46116a2f0",
+      "dependencies": [
+        "jsr:@std/assert"
+      ]
+    },
+    "@std/path@1.0.6": {
+      "integrity": "ab2c55f902b380cf28e0eec501b4906e4c1960d13f00e11cfbcd21de15f18fed"
+    }
+  },
+  "npm": {
+    "linkifyjs@4.1.3": {
+      "integrity": "sha512-auMesunaJ8yfkHvK4gfg1K0SaKX/6Wn9g2Aac/NwX+l5VdmFZzo/hdPGxEOETj+ryRa4/fiOPjeeKURSAJx1sg=="
     }
   },
   "remote": {
@@ -47,11 +69,6 @@
     "https://deno.land/std@0.212.0/dotenv/mod.ts": "46cc7a78cf3f7ba533c8c9b90407a365f925be332ebdc867a1f502614e3d8523",
     "https://deno.land/std@0.212.0/dotenv/parse.ts": "55d5d1a5ba76c1324e6dc2f2f7917f03c47e5da5c2c55af11fd0fe2d6a3d3a2e",
     "https://deno.land/std@0.212.0/dotenv/stringify.ts": "0047ad7068289735d08964046aea267a750c141b494ca0e38831b89be6c020c2",
-    "https://deno.land/x/decorate@1.0.0/mod.ts": "78f8b721fcb183a393915c734b5773be57d6e451190b2d7ea4c37425c7cd4aaf",
-    "https://deno.land/x/decorate@1.0.0/src/BoundMethod.ts": "4518be313321dfa89ef678479398bce5af1eaa7c35fb283278da97f390b6c987",
-    "https://deno.land/x/decorate@1.0.0/src/ClassMethod.ts": "4221e9b3dc967b05d3524d20627bf04bd665716bd1f1b32e98bdb2bccebd2c39",
-    "https://deno.land/x/decorate@1.0.0/src/MemoizedGetter.ts": "a0f7088362fa35a53e933a99d0a4a968fc01f02209fdd72ef767d0dec29125ed",
-    "https://deno.land/x/decorate@1.0.0/src/Nullable.ts": "465b64a335721f9762a10c7183f1d7a0967c06eba4f46be4dcc3135088371af3",
     "https://deno.land/x/decorate@1.1.0/mod.ts": "e5ac15a5a8f4f3752b944dc233d3dd8793e63bd5d451846fd1a51c6e32a12393",
     "https://deno.land/x/decorate@1.1.0/src/BoundMethod.ts": "5c21fc461f967a6a69a46be5958e42435ab98f048b9c9474b66172bdd9f1ca37",
     "https://deno.land/x/decorate@1.1.0/src/ClassMethod.ts": "c56df50b73e177dec2b20408c51d0830b2f2b86a9ff4b7980c1361779de81a97",
@@ -95,7 +112,8 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/path",
+      "jsr:@dbushell/audio-duration@0.6",
+      "jsr:@std/path@*",
       "npm:linkifyjs@4.1.3"
     ]
   }

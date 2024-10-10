@@ -137,6 +137,9 @@ export class PodcastifyBot {
               const params = {
                 ...this.getCaptionParams(url.toString()),
                 ...this.getReplyParameters(ctx.message.message_id),
+                duration: downloadResult.durationMs
+                  ? Math.floor(downloadResult.durationMs / 1000)
+                  : undefined,
               };
               return ctx.replyWithAudio(
                 new InputFile(downloadResult.filePath, fileName ?? undefined),

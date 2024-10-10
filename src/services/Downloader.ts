@@ -1,16 +1,19 @@
 import * as path from "path";
-import { BoundMethod } from "decorate";
+import { BoundMethod, type Nullable } from "decorate";
 import { Provide } from "microdi";
 import { WorkerPool } from "services/WorkerPool.ts";
 import { DownloaderConfiguration } from "services/DownloaderConfiguration.ts";
+import { duration } from "@dbushell/audio-duration";
 
 interface DownloadResultError {
   readonly filePath: null;
+  readonly durationMs: null;
   deleteFile(): Promise<void>;
 }
 
 interface DownloadResultOK {
   readonly filePath: string;
+  readonly durationMs: Nullable<number>;
   deleteFile(): Promise<void>;
 }
 
@@ -90,6 +93,14 @@ export class Downloader {
     }
   }
 
+  private async getDurationMsOrNull(path: string) {
+    try {
+      return await duration(path);
+    } catch {
+      return null;
+    }
+  }
+
   @BoundMethod
   public async submitDownloadTaskAndGetResult(
     url: string
@@ -109,13 +120,16 @@ export class Downloader {
 
     if (uuid) {
       const filePath = this.getTempFilePath(this.getFileName(uuid));
+      const durationMs = await this.getDurationMsOrNull(filePath);
       return {
         filePath,
+        durationMs,
         deleteFile: () => this.deleteFile(filePath),
       };
     }
     return {
       filePath: null,
+      durationMs: null,
       deleteFile: () => Promise.resolve(),
     };
   }

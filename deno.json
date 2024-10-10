@@ -1,28 +1,27 @@
 {
   "tasks": {
     "test": "deno test",
-    "start": "deno run --allow-read --allow-run --allow-write --allow-env --allow-net ./bootstrap.ts",
-    "debug": "deno run --inspect-brk --allow-read --allow-write --allow-run --allow-env --allow-net ./bootstrap.ts",
-    "build:linux": "deno compile --allow-read --allow-run --allow-write --allow-env --allow-net --output podcastify --target x86_64-unknown-linux-gnu ./bootstrap.ts",
-    "build:macos": "deno compile --allow-read --allow-run --allow-write --allow-env --allow-net --output podcastify --target aarch64-apple-darwin ./bootstrap.ts",
-    "build:windows": "deno compile --allow-read --allow-run --allow-write --allow-env --allow-net --output podcastify --target x86_64-pc-windows-msvc ./bootstrap.ts"
+    "start": "deno run --allow-import --allow-read --allow-run --allow-write --allow-env --allow-net ./bootstrap.ts",
+    "debug": "deno run --inspect-brk --allow-import --allow-read --allow-write --allow-run --allow-env --allow-net ./bootstrap.ts",
+    "build:linux": "deno compile --allow-import --allow-read --allow-run --allow-write --allow-env --allow-net --output podcastify --target x86_64-unknown-linux-gnu ./bootstrap.ts",
+    "build:macos": "deno compile --allow-import --allow-read --allow-run --allow-write --allow-env --allow-net --output podcastify --target aarch64-apple-darwin ./bootstrap.ts",
+    "build:windows": "deno compile --allow-import --allow-read --allow-run --allow-write --allow-env --allow-net --output podcastify --target x86_64-pc-windows-msvc ./bootstrap.ts"
   },
   "imports": {
-    "testing": "https://deno.land/std@0.154.0/testing/asserts.ts",
-    "blob": "https://deno.land/std@0.154.0/blob/mod.ts",
-    "grammy": "https://deno.land/x/grammy@v1.21.1/mod.ts",
-    "microdi": "https://deno.land/x/microdi@v1.0.0/mod.ts",
+    "@dbushell/audio-duration": "jsr:@dbushell/audio-duration@^0.6.0",
     "decorate": "https://deno.land/x/decorate@1.1.0/mod.ts",
     "dotenv": "https://deno.land/std@0.212.0/dotenv/mod.ts",
-    "path": "jsr:@std/path",
+    "grammy": "https://deno.land/x/grammy@v1.21.1/mod.ts",
     "linkifyjs": "npm:linkifyjs@4.1.3",
+    "microdi": "https://deno.land/x/microdi@v1.0.0/mod.ts",
+    "path": "jsr:@std/path",
+    "testing": "https://deno.land/std@0.154.0/testing/asserts.ts",
     "services/": "./src/services/",
     "shared/": "./src/shared/"
   },
   "lint": { "rules": { "tags": ["recommended"] } },
   "compilerOptions": {
     "useUnknownInCatchVariables": true,
-    "experimentalDecorators": false,
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -30,7 +29,6 @@
     "strictBindCallApply": true,
     "strictPropertyInitialization": true,
     "noImplicitThis": true,
-    "alwaysStrict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
