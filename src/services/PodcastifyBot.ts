@@ -7,6 +7,8 @@ import { Downloader } from "services/Downloader.ts";
 import { BotTalks } from "services/BotTalks.ts";
 import { UploaderPool } from "services/UploaderPool.ts";
 import { VideoNameResolver } from "services/VideoNameResolver.ts";
+import { ConsoleLogger } from "services/ConsoleLogger.ts";
+import { Logger } from "services/Logger.ts";
 
 @Provide(
   PodcastifyBotConfiguration,
@@ -14,7 +16,8 @@ import { VideoNameResolver } from "services/VideoNameResolver.ts";
   Downloader,
   VideoNameResolver,
   BotTalks,
-  UploaderPool
+  UploaderPool,
+  ConsoleLogger
 )
 export class PodcastifyBot {
   private static readonly UPLOAD_LIMIT_HOSTED_50_MB = 50 * 1024 * 1024;
@@ -30,7 +33,8 @@ export class PodcastifyBot {
     private readonly downloader: Downloader,
     private readonly videoNameResolver: VideoNameResolver,
     private readonly botTalks: BotTalks,
-    private readonly uploaderPool: UploaderPool
+    private readonly uploaderPool: UploaderPool,
+    private readonly logger: Logger
   ) {
     if (configuration.apiRoot) {
       this.bot = new Bot(configuration.botToken, {
@@ -82,6 +86,14 @@ export class PodcastifyBot {
       }
 
       const links = this.linksExtractor.getUrlsFromText(text);
+      this.logger.info(
+        links.length > 0
+          ? `Some links are required to process: ${Array.from(
+              links,
+              ({ url }) => `"${url}"`
+            ).join(", ")}`
+          : `No links in message: "${text}"`
+      );
       if (links.length === 0) {
         return await this.tryOrIngnoreError(() => {
           return ctx.reply(
@@ -93,6 +105,7 @@ export class PodcastifyBot {
 
       for (const { type, message, url } of links) {
         if (type === "UNKNOWN") {
+          this.logger.info(`The requested link can't be handled: "${url}"`);
           await this.tryOrIngnoreError(() => {
             return ctx.reply(
               message,
@@ -105,6 +118,7 @@ export class PodcastifyBot {
           this.botTalks.downloadStarted(url.toString()),
           this.getReplyParameters(ctx.message.message_id)
         );
+        this.logger.info(`Downloading of "${url.toString()}" has started`);
 
         const [downloadResult, fileName] = await Promise.all([
           this.downloader.submitDownloadTaskAndGetResult(url.toString()),
@@ -113,6 +127,9 @@ export class PodcastifyBot {
 
         try {
           if (downloadResult.filePath === null) {
+            this.logger.warn(
+              `Download of "${url.toString()}" were not successful`
+            );
             await this.tryOrIngnoreError(() => {
               return ctx.reply(
                 this.botTalks.downloadFailed(url.toString()),
@@ -128,6 +145,9 @@ export class PodcastifyBot {
             : PodcastifyBot.UPLOAD_LIMIT_HOSTED_50_MB;
 
           if (downloadedFileStats.size <= maxTelegramUploadSize) {
+            this.logger.info(
+              `Direct file uploading for "${url}". File path is "${downloadResult.filePath}".`
+            );
             await ctx.api.editMessageText(
               ctx.message.chat.id,
               waitMessage.message_id,
@@ -141,12 +161,16 @@ export class PodcastifyBot {
                   ? Math.floor(downloadResult.durationMs / 1000)
                   : undefined,
               };
+
               return ctx.replyWithAudio(
                 new InputFile(downloadResult.filePath, fileName ?? undefined),
                 params
               );
             });
           } else {
+            this.logger.info(
+              `Third party file uploading for "${url}". File path is "${downloadResult.filePath}".`
+            );
             await ctx.api.editMessageText(
               ctx.message.chat.id,
               waitMessage.message_id,
@@ -158,11 +182,15 @@ export class PodcastifyBot {
             );
 
             if (uploadURL) {
+              this.logger.info(
+                `Uploading to a third-party service successful.`
+              );
               await ctx.reply(
                 this.botTalks.replyWithUploadedFileLink(uploadURL),
                 this.getReplyParameters(ctx.message.message_id)
               );
             } else {
+              this.logger.error(`Uploading to a third-party service failed.`);
               await ctx.reply(
                 this.botTalks.failedToUpload(url.toString()),
                 this.getReplyParameters(ctx.message.message_id)
@@ -175,6 +203,7 @@ export class PodcastifyBot {
               return ctx.api.deleteMessage(ctx.chat.id, waitMessage.message_id);
             });
           }
+          this.logger.info(`Removing temp file "${downloadResult.filePath}"`);
           await this.tryOrIngnoreError(() => downloadResult.deleteFile());
         }
       }

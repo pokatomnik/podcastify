@@ -4,6 +4,8 @@ import { Provide } from "microdi";
 import { WorkerPool } from "services/WorkerPool.ts";
 import { DownloaderConfiguration } from "services/DownloaderConfiguration.ts";
 import { duration } from "@dbushell/audio-duration";
+import { ConsoleLogger } from "services/ConsoleLogger.ts";
+import { Logger } from "services/Logger.ts";
 
 interface DownloadResultError {
   readonly filePath: null;
@@ -17,11 +19,12 @@ interface DownloadResultOK {
   deleteFile(): Promise<void>;
 }
 
-@Provide(WorkerPool, DownloaderConfiguration)
+@Provide(WorkerPool, DownloaderConfiguration, ConsoleLogger)
 export class Downloader {
   public constructor(
     private readonly workerPool: WorkerPool,
-    private readonly downloaderConfiguration: DownloaderConfiguration
+    private readonly downloaderConfiguration: DownloaderConfiguration,
+    private readonly logger: Logger
   ) {}
 
   private getFileName(uuid: string): string {
@@ -58,13 +61,27 @@ export class Downloader {
 
   private async downloadWithNoProxy(url: string): Promise<string | null> {
     const uuid = crypto.randomUUID();
-    const command = new Deno.Command("yt-dlp", {
-      args: this.getArgs(uuid, url),
-    });
+    const args = this.getArgs(uuid, url);
+    this.logger.info(`Running yt-dlp with args: ${args.join(" ")}`);
+    const command = new Deno.Command("yt-dlp", { args });
     try {
-      const { success } = await command.output();
+      const { success, stderr } = await command.output();
+
+      if (!success) {
+        const errorText = new TextDecoder().decode(stderr);
+        this.logger.error(
+          `Failed to download video (without proxy) with url: "${url}"`
+        );
+        this.logger.error(errorText);
+      }
+
       return success ? uuid : null;
-    } catch {
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error("Unknown error");
+      this.logger.error(
+        `Failed to download video (without proxy) with url: "${url}`
+      );
+      this.logger.error(error.message);
       return null;
     }
   }
@@ -74,13 +91,27 @@ export class Downloader {
     proxyUrl: string
   ): Promise<string | null> {
     const uuid = crypto.randomUUID();
-    const command = new Deno.Command("yt-dlp", {
-      args: this.getArgs(uuid, url, proxyUrl),
-    });
+    const args = this.getArgs(uuid, url, proxyUrl);
+    this.logger.info(`Running yt-dlp with args: ${args.join(" ")}`);
+    const command = new Deno.Command("yt-dlp", { args });
     try {
-      const { success } = await command.output();
+      const { success, stderr } = await command.output();
+
+      if (!success) {
+        const errorText = new TextDecoder().decode(stderr);
+        this.logger.error(
+          `Failed to download video (with proxy) with url: "${url}"`
+        );
+        this.logger.error(errorText);
+      }
+
       return success ? uuid : null;
-    } catch {
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error("Unknown error");
+      this.logger.error(
+        `Failed to download video (with proxy) with url: "${url}"`
+      );
+      this.logger.error(error.message);
       return null;
     }
   }
@@ -89,7 +120,7 @@ export class Downloader {
     try {
       await Deno.remove(path);
     } catch {
-      // do nothing
+      this.logger.error(`Failed to remove file "${path}"`);
     }
   }
 
@@ -97,6 +128,7 @@ export class Downloader {
     try {
       return await duration(path);
     } catch {
+      this.logger.error(`Failed to find out audio duration for file "${path}"`);
       return null;
     }
   }
@@ -107,12 +139,14 @@ export class Downloader {
   ): Promise<DownloadResultError | DownloadResultOK> {
     let uuid: string | null = null;
 
+    this.logger.info(`Trying to download video without proxy: "${url}"`);
     uuid = await this.workerPool.submitTaskAndGetResult(() => {
       return this.downloadWithNoProxy(url);
     });
 
     const proxyUrl = this.downloaderConfiguration.proxyUrl;
     if (!uuid && proxyUrl) {
+      this.logger.info(`Trying to download video with proxy: "${url}"`);
       uuid = await this.workerPool.submitTaskAndGetResult(() => {
         return this.downloadWithProxy(url, proxyUrl);
       });

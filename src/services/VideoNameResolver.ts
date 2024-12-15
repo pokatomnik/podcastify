@@ -1,8 +1,10 @@
 import { BoundMethod } from "decorate";
 import { Provide } from "microdi";
 import { DownloaderConfiguration } from "services/DownloaderConfiguration.ts";
+import { ConsoleLogger } from "services/ConsoleLogger.ts";
+import { Logger } from "services/Logger.ts";
 
-@Provide(DownloaderConfiguration)
+@Provide(DownloaderConfiguration, ConsoleLogger)
 export class VideoNameResolver {
   private static readonly enAlphaLower = "abcdefghijklmnopqrstuvwxyz";
   private static readonly enAlpha = new Set(
@@ -30,17 +32,33 @@ export class VideoNameResolver {
   ]);
 
   public constructor(
-    private readonly downloaderConfiguration: DownloaderConfiguration
+    private readonly downloaderConfiguration: DownloaderConfiguration,
+    private readonly logger: Logger
   ) {}
 
   private async downloadWithNoProxy(url: string): Promise<string | null> {
-    const command = new Deno.Command("yt-dlp", {
-      args: this.getArgs(url),
-    });
+    const args = this.getArgs(url);
+    this.logger.info(`Running yt-dlp with args: ${args.join(" ")}`);
+    const command = new Deno.Command("yt-dlp", { args });
     try {
-      const { success, stdout } = await command.output();
-      return success ? new TextDecoder().decode(stdout) : null;
-    } catch {
+      const { success, stdout, stderr } = await command.output();
+      const result = success ? new TextDecoder().decode(stdout) : null;
+
+      if (!success) {
+        const errorText = new TextDecoder().decode(stderr);
+        this.logger.error(
+          `Finding out video title resulted with error (without proxy):`
+        );
+        this.logger.error(errorText);
+      }
+
+      return result;
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error("Unknown error");
+      this.logger.error(
+        `Finding out video title resulted with error (without proxy):`
+      );
+      this.logger.error(error.message);
       return null;
     }
   }
@@ -49,13 +67,27 @@ export class VideoNameResolver {
     url: string,
     proxyUrl: string
   ): Promise<string | null> {
-    const command = new Deno.Command("yt-dlp", {
-      args: this.getArgs(url, proxyUrl),
-    });
+    const args = this.getArgs(url, proxyUrl);
+    this.logger.info(`Running yt-dlp with args: ${args.join(" ")}`);
+    const command = new Deno.Command("yt-dlp", { args });
     try {
-      const { success, stdout } = await command.output();
+      const { success, stdout, stderr } = await command.output();
+
+      if (!success) {
+        const errorText = new TextDecoder().decode(stderr);
+        this.logger.error(
+          `Finding out video title resulted with error (with proxy):`
+        );
+        this.logger.error(errorText);
+      }
+
       return success ? new TextDecoder().decode(stdout) : null;
-    } catch {
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error("Unknown error");
+      this.logger.error(
+        `Finding out video title resulted with error (without proxy):`
+      );
+      this.logger.error(error.message);
       return null;
     }
   }
@@ -72,23 +104,38 @@ export class VideoNameResolver {
 
   /**
    * Get file filesystem-friendly file name with '.mp3' extension
-   * @param youtubeUrl Youtube video URL
+   * @param url Youtube video URL
    * @returns name or null if can't get it
    */
   @BoundMethod
-  public async resolve(youtubeUrl: string): Promise<string | null> {
+  public async resolve(url: string): Promise<string | null> {
     let fileName: string | null = null;
     try {
-      fileName = await this.downloadWithNoProxy(youtubeUrl);
+      this.logger.info(
+        `Trying to get the video title for url (without proxy): "${url}"`
+      );
+      fileName = await this.downloadWithNoProxy(url);
     } catch {
-      // skip, try with proxy further
+      this.logger.error(
+        `Trying to get the video title for url (without proxy) "${url}" failed`
+      );
     }
     if (!fileName && this.downloaderConfiguration.proxyUrl) {
+      this.logger.info(
+        `Trying to get the video title for url (with proxy): "${url}"`
+      );
       fileName = await this.downloadWithProxy(
-        youtubeUrl,
+        url,
         this.downloaderConfiguration.proxyUrl
       );
     }
+
+    if (!fileName) {
+      this.logger.error(
+        `Trying to get the video title for url (with proxy) "${url}" failed`
+      );
+    }
+
     const cleanFileName = fileName ? this.cleanFileName(fileName.trim()) : null;
     return cleanFileName ? `${cleanFileName}.mp3` : null;
   }
