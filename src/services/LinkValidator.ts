@@ -31,10 +31,12 @@ export class LinkValidator {
       /*
        * Надо обрабатывать следующие виды ссылок:
        * [vk.com/video-VIDEO_ID]
+       * [vkvideo.ru/video-VIDEO_ID]
        * [m.vk.com/video-VIDEO_ID]
        * [m.vk.com/video/CATEGORY?z=video-VIDEO_ID%2ADDITIONAL_INFO]
        */
       ["vk.com", [(url) => url.pathname.startsWith("/video")]],
+      ["vkvideo.ru", [(url) => url.pathname.startsWith("/video")]],
       ["m.vk.com", [(url) => url.pathname.startsWith("/video")]],
     ]);
 
