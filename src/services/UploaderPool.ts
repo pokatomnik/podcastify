@@ -13,8 +13,11 @@ import { UploaderAmbrosus } from "services/UploaderAmbrosus.ts";
 import { UploaderDov } from "services/UploaderDov.ts";
 import { UploaderKuwaitnet } from "services/UploaderKuwaitnet.ts";
 import { BoundMethod, MemoizedGetter } from "decorate";
+import { ConsoleLogger } from "services/ConsoleLogger.ts";
+import { Logger } from "services/Logger.ts";
 
 @Provide(
+  ConsoleLogger,
   Uploader0x0,
   UploaderFileDoge,
   UploaderLibriciel,
@@ -33,6 +36,7 @@ export class UploaderPool implements Uploader {
   private readonly uploaders: ReadonlyArray<Uploader>;
 
   public constructor(
+    private readonly logger: Logger,
     uploader0x0: Uploader,
     uploaderFileDoge: Uploader,
     uploaderLibriciel: Uploader,
@@ -76,14 +80,26 @@ export class UploaderPool implements Uploader {
       return Math.random() - 0.5;
     });
     if (availableUploaderShuffled.length === 0) {
+      this.logger.error(`No uploaders support fileSize ${fileSizeInBytes}b`);
       return null;
     }
     for (const uploader of availableUploaderShuffled) {
+      this.logger.info(`Selected uploader: "${uploader}"`);
       const fileURL = await uploader.upload(filePath, fileSizeInBytes);
       if (fileURL !== null) {
+        this.logger.info(
+          `Selected uploader has successfully uploaded "${filePath}" with size ${fileSizeInBytes}b`
+        );
         return fileURL;
+      } else {
+        this.logger.warn(
+          `Selected uploader can not upload "${filePath}" with size ${fileSizeInBytes}b`
+        );
       }
     }
+    this.logger.warn(
+      `No uploaders succeeded with file "${filePath}" with size ${fileSizeInBytes}b`
+    );
     return null;
   }
 
