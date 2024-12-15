@@ -90,7 +90,7 @@ export class PodcastifyBot {
         links.length > 0
           ? `Some links are required to process: ${Array.from(
               links,
-              (link) => `"${link}"`
+              ({ url }) => `"${url}"`
             ).join(", ")}`
           : `No links in message: "${text}"`
       );
